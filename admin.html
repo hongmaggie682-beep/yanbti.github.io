@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html class="light" lang="zh-CN">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>烟BTI | 数据统计管理</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed-variant": "#324f00",
+                        "on-error": "#ffffff",
+                        "primary-fixed-dim": "#a4d659",
+                        "surface-bright": "#f8f9ff",
+                        "on-tertiary-fixed-variant": "#3c475a",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed": "#d8e3fb",
+                        "on-error-container": "#93000a",
+                        "on-primary-fixed": "#111f00",
+                        "on-surface": "#0b1c30",
+                        "surface": "#f9f9f9",
+                        "on-secondary-fixed-variant": "#454747",
+                        "inverse-on-surface": "#eaf1ff",
+                        "inverse-primary": "#a4d659",
+                        "surface-container-low": "#eff4ff",
+                        "on-secondary-container": "#616363",
+                        "surface-container-high": "#dce9ff",
+                        "secondary-container": "#dfe0e0",
+                        "on-primary-container": "#fffff4",
+                        "background": "#f9f9f9",
+                        "surface-variant": "#d3e4fe",
+                        "on-tertiary-fixed": "#111c2d",
+                        "surface-dim": "#cbdbf5",
+                        "on-secondary-fixed": "#1a1c1c",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed": "#e2e2e2",
+                        "on-background": "#0b1c30",
+                        "inverse-surface": "#213145",
+                        "primary": "#436700",
+                        "tertiary-container": "#6b768b",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface-variant": "#434939",
+                        "outline-variant": "#c3c9b4",
+                        "error": "#ba1a1a",
+                        "surface-container-highest": "#d3e4fe",
+                        "tertiary-fixed-dim": "#bcc7de",
+                        "surface-container": "#e5eeff",
+                        "surface-tint": "#446900",
+                        "on-tertiary-container": "#fffeff",
+                        "primary-container": "#568203",
+                        "secondary-fixed-dim": "#c6c6c7",
+                        "primary-fixed": "#bff372",
+                        "secondary": "#5d5f5f",
+                        "error-container": "#ffdad6",
+                        "outline": "#737967",
+                        "on-tertiary": "#ffffff",
+                        "tertiary": "#525d72"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-page": "32px",
+                        "sidebar-width": "260px",
+                        "gutter": "24px",
+                        "stack-sm": "8px",
+                        "stack-md": "16px",
+                        "stack-lg": "24px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Hanken Grotesk"],
+                        "label-sm": ["JetBrains Mono"],
+                        "body-md": ["Hanken Grotesk"],
+                        "label-md": ["JetBrains Mono"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "headline-sm": ["Hanken Grotesk"],
+                        "headline-md": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-sm": ["10px", {"lineHeight": "12px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            background-color: #f9f9f9;
+            color: #0b1c30;
+            font-family: 'Hanken Grotesk', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .chart-container {
+            position: relative;
+            height: 280px;
+            width: 100%;
+        }
+        .zebra-row:hover {
+            background-color: rgba(86, 130, 3, 0.04);
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <main class="min-h-screen">
+        <div class="p-margin-page max-w-[1440px] mx-auto space-y-gutter">
+            <!-- Header Section -->
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <h2 class="font-display-lg text-display-lg text-on-surface tracking-tight">数据概览</h2>
+                    <p class="text-on-surface-variant mt-1">人格测评指标和行为趋势的实时概览。</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-2 bg-surface-container-lowest border border-outline-variant rounded-lg p-2 shadow-sm">
+                        <span class="material-symbols-outlined text-primary text-[20px]">calendar_today</span>
+                        <select id="dateRange" class="bg-transparent border-none p-0 font-label-md text-label-md text-on-surface focus:ring-0 cursor-pointer" onchange="handleDateRangeChange()">
+                            <option value="all">全部时间</option>
+                            <option value="today">今天</option>
+                            <option value="week">最近7天</option>
+                            <option value="month">最近30天</option>
+                            <option value="custom">自定义日期</option>
+                        </select>
+                    </div>
+                    <input type="date" id="customDate" class="hidden border border-outline-variant rounded-lg px-3 py-2 font-label-md text-label-md text-on-surface focus:ring-1 focus:ring-primary focus:border-primary" onchange="filterByCustomDate()">
+                    <button onclick="loadData()" class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md hover:opacity-90 transition-opacity flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[18px]">refresh</span>
+                        刷新数据
+                    </button>
+                </div>
+            </div>
+
+            <!-- Metric Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gutter">
+                <!-- Card 1: 总测评数 -->
+                <div class="bg-surface-container-lowest border border-outline-variant p-stack-lg rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex justify-between items-start">
+                        <p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">总测评数</p>
+                        <span class="material-symbols-outlined text-primary/40">groups</span>
+                    </div>
+                    <h3 class="font-headline-md text-headline-md text-on-surface mt-2" id="totalCount">0</h3>
+                    <div class="mt-4 flex items-center gap-2">
+                        <div class="flex-1 h-10 flex items-end gap-[2px]">
+                            <div class="w-1 bg-primary/20 h-[40%]"></div>
+                            <div class="w-1 bg-primary/20 h-[60%]"></div>
+                            <div class="w-1 bg-primary/20 h-[50%]"></div>
+                            <div class="w-1 bg-primary/20 h-[80%]"></div>
+                            <div class="w-1 bg-primary/40 h-[70%]"></div>
+                            <div class="w-1 bg-primary h-full"></div>
+                        </div>
+                        <span class="text-label-sm font-label-sm text-primary">实时</span>
+                    </div>
+                </div>
+
+                <!-- Card 2: 今日新增用户 -->
+                <div class="bg-surface-container-lowest border border-outline-variant p-stack-lg rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex justify-between items-start">
+                        <p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">今日新增用户</p>
+                        <span class="material-symbols-outlined text-primary/40">person_add</span>
+                    </div>
+                    <h3 class="font-headline-md text-headline-md text-on-surface mt-2" id="todayCount">0</h3>
+                    <div class="mt-4 flex items-center gap-2">
+                        <div class="flex-1 h-10 flex items-end gap-[4px] justify-between">
+                            <div class="w-2 bg-primary/10 h-[30%] rounded-t-sm"></div>
+                            <div class="w-2 bg-primary/20 h-[45%] rounded-t-sm"></div>
+                            <div class="w-2 bg-primary/30 h-[60%] rounded-t-sm"></div>
+                            <div class="w-2 bg-primary/40 h-[80%] rounded-t-sm"></div>
+                            <div class="w-2 bg-primary h-[95%] rounded-t-sm"></div>
+                        </div>
+                        <span class="text-label-sm font-label-sm text-primary">稳定</span>
+                    </div>
+                </div>
+
+                <!-- Card 3: 网页浏览量 -->
+                <div class="bg-surface-container-lowest border border-outline-variant p-stack-lg rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex justify-between items-start">
+                        <p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">网页浏览量</p>
+                        <span class="material-symbols-outlined text-primary/40">visibility</span>
+                    </div>
+                    <h3 class="font-headline-md text-headline-md text-on-surface mt-2" id="pageViews">0</h3>
+                    <div class="mt-4 flex items-center gap-2">
+                        <div class="flex-1 h-10 flex items-center">
+                            <div class="w-full bg-outline-variant h-1 rounded-full overflow-hidden">
+                                <div class="bg-primary w-[80%] h-full"></div>
+                            </div>
+                        </div>
+                        <span class="text-label-sm font-label-sm text-primary">+15%</span>
+                    </div>
+                </div>
+
+                <!-- Card 4: 平均测评用时 -->
+                <div class="bg-surface-container-lowest border border-outline-variant p-stack-lg rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex justify-between items-start">
+                        <p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">平均测评用时</p>
+                        <span class="material-symbols-outlined text-primary/40">timer</span>
+                    </div>
+                    <h3 class="font-headline-md text-headline-md text-on-surface mt-2" id="avgTime">0s</h3>
+                    <div class="mt-4 flex items-center gap-2">
+                        <div class="flex-1 h-10 flex items-center">
+                            <div class="w-full bg-outline-variant h-1 rounded-full overflow-hidden">
+                                <div class="bg-error w-[65%] h-full"></div>
+                            </div>
+                        </div>
+                        <span class="text-label-sm font-label-sm text-error">-14s</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-gutter">
+                <!-- Donut Chart: Personality Distribution -->
+                <div class="lg:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-lg p-stack-lg shadow-sm">
+                    <div class="flex justify-between items-center mb-6">
+                        <h4 class="font-headline-sm text-headline-sm text-on-surface">控烟人格分布</h4>
+                        <button onclick="downloadChart('personalityChart', '控烟人格分布')" class="text-on-surface-variant hover:text-primary transition-colors" title="下载图表">
+                            <span class="material-symbols-outlined">download</span>
+                        </button>
+                    </div>
+                    <div class="chart-container flex flex-col items-center justify-center">
+                        <div class="relative w-48 h-48">
+                            <canvas id="personalityChart"></canvas>
+                        </div>
+                        <div class="mt-6 grid grid-cols-2 gap-x-8 gap-y-3 w-full px-4" id="personalityLegend">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Line Chart: Daily Volume -->
+                <div class="lg:col-span-3 bg-surface-container-lowest border border-outline-variant rounded-lg p-stack-lg shadow-sm">
+                    <div class="flex justify-between items-center mb-6">
+                        <h4 class="font-headline-sm text-headline-sm text-on-surface">每日测试量趋势</h4>
+                        <div class="flex gap-4">
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-primary"></span>
+                                <span class="text-label-sm font-label-sm text-on-surface-variant">测试人数</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="timeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table Section -->
+            <div class="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+                <div class="px-stack-lg py-4 border-b border-outline-variant flex justify-between items-center bg-surface-bright">
+                    <div class="flex items-center gap-3">
+                        <h4 class="font-headline-sm text-headline-sm text-on-surface">近期测试记录</h4>
+                        <span class="px-2 py-0.5 bg-surface-container-highest text-on-surface-variant text-[10px] rounded font-bold">实时更新</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="relative hidden sm:block mr-2">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
+                            <input id="searchInput" class="bg-surface-container-low border border-outline-variant rounded py-1.5 pl-9 pr-3 text-body-md w-48 focus:w-64 transition-all focus:ring-1 focus:ring-primary focus:border-primary" placeholder="快速搜索..." type="text" oninput="filterTable()">
+                        </div>
+                        <div class="relative">
+                            <button onclick="toggleFilterMenu()" class="px-3 py-1.5 border border-outline-variant rounded font-label-md text-label-md text-on-surface hover:bg-surface-container transition-colors flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[18px]">filter_list</span> 筛选
+                            </button>
+                            <div id="filterMenu" class="hidden absolute right-0 mt-2 w-48 bg-surface-container-lowest border border-outline-variant rounded-lg shadow-lg z-10">
+                                <button onclick="exportCSV()" class="w-full px-4 py-2 text-left font-label-md text-label-md text-on-surface hover:bg-surface-container transition-colors flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-[18px]">download</span> 导出数据
+                                </button>
+                                <button onclick="deleteSelectedData()" class="w-full px-4 py-2 text-left font-label-md text-label-md text-error hover:bg-error/10 transition-colors flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-[18px]">delete</span> 删除数据
+                                </button>
+                            </div>
+                        </div>
+                        <button onclick="exportCSV()" class="px-3 py-1.5 bg-primary text-on-primary rounded font-label-md text-label-md hover:opacity-90 transition-opacity flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[18px]">download</span> 导出 CSV
+                        </button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-surface-container/50 border-b border-outline-variant">
+                                <th class="px-stack-lg py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">时间</th>
+                                <th class="px-stack-lg py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">人格类型</th>
+                                <th class="px-stack-lg py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">健康认知</th>
+                                <th class="px-stack-lg py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">自我管控</th>
+                                <th class="px-stack-lg py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">公共责任</th>
+                                <th class="px-stack-lg py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">主动干预</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-outline-variant/30" id="dataTableBody">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="px-stack-lg py-4 bg-surface-container-low border-t border-outline-variant flex justify-between items-center">
+                    <p class="text-label-md font-label-md text-on-surface-variant" id="paginationInfo">显示第 1-20 条，共 0 条</p>
+                    <div class="flex gap-1" id="paginationButtons">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let personalityChart = null;
+        let timeChart = null;
+        let allData = [];
+        let filteredData = [];
+        let currentPage = 1;
+        const itemsPerPage = 20;
+
+        async function loadData() {
+            try {
+                const response = await fetch('http://localhost:3000/api/results');
+                const data = await response.json();
+                allData = data;
+                
+                filterByDate();
+            } catch (error) {
+                console.error('加载数据失败:', error);
+                alert('加载数据失败，请确保后端服务器正在运行');
+            }
+        }
+
+        function filterByDate() {
+            const dateRange = document.getElementById('dateRange').value;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            filteredData = allData.filter(item => {
+                const itemDate = new Date(item.date);
+                itemDate.setHours(0, 0, 0, 0);
+                
+                switch(dateRange) {
+                    case 'today':
+                        return itemDate.getTime() === today.getTime();
+                    case 'week':
+                        const weekAgo = new Date(today);
+                        weekAgo.setDate(weekAgo.getDate() - 7);
+                        return itemDate >= weekAgo;
+                    case 'month':
+                        const monthAgo = new Date(today);
+                        monthAgo.setDate(monthAgo.getDate() - 30);
+                        return itemDate >= monthAgo;
+                    default:
+                        return true;
+                }
+            });
+            
+            currentPage = 1;
+            displayStats(filteredData);
+            displayTable(filteredData);
+        }
+
+        function handleDateRangeChange() {
+            const dateRange = document.getElementById('dateRange').value;
+            const customDateInput = document.getElementById('customDate');
+            
+            if (dateRange === 'custom') {
+                customDateInput.classList.remove('hidden');
+            } else {
+                customDateInput.classList.add('hidden');
+                filterByDate();
+            }
+        }
+
+        function filterByCustomDate() {
+            const customDate = document.getElementById('customDate').value;
+            if (!customDate) return;
+            
+            const selectedDate = new Date(customDate).toLocaleDateString('zh-CN');
+            filteredData = allData.filter(item => item.date === selectedDate);
+            
+            currentPage = 1;
+            displayStats(filteredData);
+            displayTable(filteredData);
+        }
+
+        async function displayStats(data) {
+            document.getElementById('totalCount').textContent = data.length;
+            
+            const today = new Date().toLocaleDateString('zh-CN');
+            const todayCount = data.filter(item => item.date === today).length;
+            document.getElementById('todayCount').textContent = todayCount;
+            
+            try {
+                const pageViewResponse = await fetch('http://localhost:3000/api/page-views');
+                const pageViews = await pageViewResponse.json();
+                document.getElementById('pageViews').textContent = pageViews.length;
+            } catch (error) {
+                console.error('获取浏览量失败:', error);
+                document.getElementById('pageViews').textContent = '0';
+            }
+            
+            const durations = data.filter(item => item.duration && item.duration > 0).map(item => item.duration);
+            const avgTime = durations.length > 0 ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length) : 0;
+            document.getElementById('avgTime').textContent = avgTime + 's';
+            
+            const personalityDist = {};
+            data.forEach(item => {
+                personalityDist[item.personality] = (personalityDist[item.personality] || 0) + 1;
+            });
+            
+            const timeDist = {};
+            data.forEach(item => {
+                if (!timeDist[item.date]) {
+                    timeDist[item.date] = 0;
+                }
+                timeDist[item.date]++;
+            });
+            
+            updatePersonalityChart(personalityDist);
+            updateTimeChart(timeDist);
+        }
+
+        function updatePersonalityChart(data) {
+            const ctx = document.getElementById('personalityChart').getContext('2d');
+            
+            if (personalityChart) {
+                personalityChart.destroy();
+            }
+            
+            const colors = ['#436700', '#568203', '#a4d659', '#c3c9b4', '#7cb342', '#8bc34a', '#9ccc65', '#aed581'];
+            const total = Object.values(data).reduce((sum, val) => sum + val, 0);
+            
+            personalityChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(data),
+                    datasets: [{
+                        data: Object.values(data),
+                        backgroundColor: colors,
+                        borderWidth: 0,
+                        cutout: '60%'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const percentage = ((context.raw / total) * 100).toFixed(1);
+                                    return `${context.label}: ${context.raw} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            const legendContainer = document.getElementById('personalityLegend');
+            legendContainer.innerHTML = Object.keys(data).map((key, index) => {
+                const percentage = ((data[key] / total) * 100).toFixed(1);
+                return `
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full" style="background-color: ${colors[index]}"></span>
+                        <span class="text-label-sm text-on-surface-variant whitespace-nowrap">${key} (${percentage}%)</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateTimeChart(data) {
+            const ctx = document.getElementById('timeChart').getContext('2d');
+            
+            if (timeChart) {
+                timeChart.destroy();
+            }
+            
+            const sortedDates = Object.keys(data).sort();
+            
+            timeChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: sortedDates,
+                    datasets: [{
+                        label: '测试人数',
+                        data: sortedDates.map(date => data[date]),
+                        borderColor: '#436700',
+                        backgroundColor: 'rgba(67, 103, 0, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#436700',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1,
+                                color: '#434939'
+                            },
+                            grid: {
+                                color: '#e8e8e8'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#434939'
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function displayTable(data) {
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const pageData = data.slice().reverse().slice(startIndex, endIndex);
+            
+            const tbody = document.getElementById('dataTableBody');
+            tbody.innerHTML = pageData.map(item => `
+                <tr class="zebra-row transition-colors">
+                    <td class="px-stack-lg py-4 font-label-md text-label-md text-on-surface">${item.date} ${item.time}</td>
+                    <td class="px-stack-lg py-4">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-primary"></span>
+                            <span class="font-body-md text-body-md text-on-surface">${item.personality}</span>
+                        </div>
+                    </td>
+                    <td class="px-stack-lg py-4 font-label-md text-label-md text-on-surface">${item.scores[0] || '-'}</td>
+                    <td class="px-stack-lg py-4 font-label-md text-label-md text-on-surface">${item.scores[1] || '-'}</td>
+                    <td class="px-stack-lg py-4 font-label-md text-label-md text-on-surface">${item.scores[2] || '-'}</td>
+                    <td class="px-stack-lg py-4 font-label-md text-label-md text-on-surface">${item.scores[3] || '-'}</td>
+                </tr>
+            `).join('');
+            
+            updatePagination(data.length);
+        }
+
+        function updatePagination(totalItems) {
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            const startIndex = (currentPage - 1) * itemsPerPage + 1;
+            const endIndex = Math.min(currentPage * itemsPerPage, totalItems);
+            
+            document.getElementById('paginationInfo').textContent = `显示第 ${startIndex}-${endIndex} 条，共 ${totalItems} 条`;
+            
+            const buttonsContainer = document.getElementById('paginationButtons');
+            buttonsContainer.innerHTML = `
+                <button class="w-8 h-8 flex items-center justify-center border border-outline-variant rounded hover:bg-surface-container transition-colors ${currentPage === 1 ? 'opacity-30' : ''}" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
+                    <span class="material-symbols-outlined text-[18px]">chevron_left</span>
+                </button>
+            `;
+            
+            for (let i = 1; i <= Math.min(totalPages, 5); i++) {
+                buttonsContainer.innerHTML += `
+                    <button class="w-8 h-8 flex items-center justify-center ${i === currentPage ? 'bg-primary text-on-primary' : 'border border-outline-variant rounded hover:bg-surface-container'} font-label-md" onclick="changePage(${i})">${i}</button>
+                `;
+            }
+            
+            buttonsContainer.innerHTML += `
+                <button class="w-8 h-8 flex items-center justify-center border border-outline-variant rounded hover:bg-surface-container transition-colors ${currentPage === totalPages ? 'opacity-30' : ''}" onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
+                    <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+                </button>
+            `;
+        }
+
+        function changePage(page) {
+            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+            if (page >= 1 && page <= totalPages) {
+                currentPage = page;
+                displayTable(filteredData);
+            }
+        }
+
+        function filterTable() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allData.filter(item => 
+                item.personality.toLowerCase().includes(searchTerm) ||
+                item.date.includes(searchTerm)
+            );
+            currentPage = 1;
+            displayTable(filtered);
+        }
+
+        function exportCSV() {
+            const headers = ['时间', '人格类型', '健康认知', '自我管控', '公共责任', '主动干预'];
+            const rows = filteredData.map(item => [
+                `${item.date} ${item.time}`,
+                item.personality,
+                item.scores[0] || '-',
+                item.scores[1] || '-',
+                item.scores[2] || '-',
+                item.scores[3] || '-'
+            ]);
+            
+            const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+            const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `烟BTI测试数据_${new Date().toLocaleDateString('zh-CN')}.csv`;
+            link.click();
+        }
+
+        function downloadChart(chartId, title) {
+            const canvas = document.getElementById(chartId);
+            const link = document.createElement('a');
+            link.download = `${title}_${new Date().toLocaleDateString('zh-CN')}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        function toggleFilterMenu() {
+            const menu = document.getElementById('filterMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        function deleteSelectedData() {
+            if (filteredData.length === 0) {
+                alert('没有可删除的数据');
+                return;
+            }
+            
+            if (confirm(`确定要删除当前筛选的 ${filteredData.length} 条数据吗？此操作不可恢复！`)) {
+                const idsToDelete = filteredData.map(item => item.id);
+                
+                fetch('http://localhost:3000/api/delete-results', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ ids: idsToDelete })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('数据删除成功！');
+                        loadData();
+                    } else {
+                        alert('删除失败：' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('删除数据失败:', error);
+                    alert('删除数据失败，请确保后端服务器正在运行');
+                });
+            }
+            
+            toggleFilterMenu();
+        }
+
+        document.addEventListener('click', function(event) {
+            const filterMenu = document.getElementById('filterMenu');
+            const filterButton = event.target.closest('button');
+            if (!filterMenu.contains(event.target) && (!filterButton || !filterButton.textContent.includes('筛选'))) {
+                filterMenu.classList.add('hidden');
+            }
+        });
+
+        loadData();
+        setInterval(loadData, 30000);
+    </script>
+</body>
+</html>

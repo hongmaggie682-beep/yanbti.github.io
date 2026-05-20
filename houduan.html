@@ -1,0 +1,31 @@
+<script>
+  // 专门用来上传到本地 Node.js 后端的函数
+  async function uploadTestDataToLocal(answers, personalityName, dimensions) {
+    try {
+      console.log("正在尝试发送数据到本地后端...");
+      const response = await fetch('http://localhost:3000/api/save-result', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          answers: answers,             // 答案数组
+          personality: personalityName, // 人格名字
+          scores: dimensions            // 三维得分
+        })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        console.log("🎉 后端反馈: " + data.message);
+      }
+    } catch (error) {
+      console.error("❌ 无法连接到本地后端服务器，请确认终端里的 node server.js 还在跑！:", error);
+    }
+  }
+
+  // 极为关键的一步：偷梁换柱！
+  // 保持你原本代码里第242行调用的 window.uploadTestDataToFirebase 名字不变
+  // 但底层的肉体已经换成了我们现在的本地上传函数
+  window.uploadTestDataToFirebase = uploadTestDataToLocal; 
+</script>

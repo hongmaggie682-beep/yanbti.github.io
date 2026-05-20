@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>烟BTI - 探索你的控烟人格</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script>
+        // 备用CDN加载
+        if (typeof QRCode === 'undefined') {
+            console.log('主CDN加载失败，尝试备用CDN...');
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+            script.onload = function() {
+                console.log('备用CDN加载成功');
+            };
+            script.onerror = function() {
+                console.error('备用CDN也加载失败');
+            };
+            document.head.appendChild(script);
+        }
+        
+        if (typeof html2canvas === 'undefined') {
+            console.log('html2canvas主CDN加载失败，尝试备用CDN...');
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+            script.onload = function() {
+                console.log('html2canvas备用CDN加载成功');
+            };
+            script.onerror = function() {
+                console.error('html2canvas备用CDN也加载失败');
+            };
+            document.head.appendChild(script);
+        }
+    </script>
+    <style>
+        :root {
+            --primary: #436700;
+            --primary-light: #568203;
+            --primary-dark: #324f00;
+            --primary-bg: #bff372;
+            --bg-color: #f9f9f9;
+            --card-bg: #FFFFFF;
+            --surface: #f9f9f9;
+            --surface-container: #eeeeee;
+            --surface-container-low: #f3f3f4;
+            --text-main: #1a1c1c;
+            --text-sub: #434939;
+            --outline: #737967;
+            --outline-variant: #c3c9b4;
+            --white: #FFFFFF;
+            --shadow: 0 4px 20px rgba(67, 103, 0, 0.1);
+            --radius: 16px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", sans-serif; }
+        .material-icons {
+            font-family: 'Material Icons';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+        }
+        body { 
+            background-color: var(--bg-color); 
+            color: var(--text-main); 
+            min-height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+        }
+        #app { width: 100%; max-width: 480px; position: relative; padding-bottom: 30px; }
+
+        .glass-card { 
+            background: var(--card-bg); 
+            border-radius: var(--radius); 
+            padding: 24px; 
+            box-shadow: var(--shadow); 
+            margin: 16px; 
+            border: 1px solid var(--border-color); 
+        }
+        .screen { display: none; animation: fadeIn 0.3s ease-out forwards; }
+        .screen.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        .home-hero { text-align: center; padding: 40px 20px 30px; }
+        .home-logo { 
+            font-size: 64px; 
+            font-weight: 800; 
+            color: var(--avocado);
+            letter-spacing: -1px; 
+            margin-bottom: 12px;
+        }
+        
+        .progress-container { 
+            width: 90%; 
+            height: 6px; 
+            background: #F5F5F5; 
+            border-radius: 3px; 
+            margin: 0 auto 16px; 
+            overflow: hidden; 
+        }
+        .progress-inner { height: 100%; background: var(--primary); width: 0%; transition: width 0.3s; border-radius: 3px;}
+        .q-text { font-size: 18px; font-weight: 600; line-height: 1.6; margin-bottom: 20px; color: var(--text-main); }
+        
+        .option { 
+            width: 100%; 
+            padding: 18px 20px; 
+            margin-bottom: 12px; 
+            background: var(--card-bg); 
+            border: 2px solid var(--outline-variant); 
+            border-radius: 12px; 
+            text-align: left; 
+            font-size: 15px; 
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .option:hover { border-color: var(--primary-light); background: var(--surface-container-low); }
+        .option:active { transform: scale(0.98); background: var(--surface-container-low); border-color: var(--primary); }
+        .option.selected { border-color: var(--primary); background: var(--surface-container-low); }
+        .option-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid var(--outline-variant);
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+        .option:hover .option-icon {
+            border-color: var(--primary-light);
+        }
+        .option.selected .option-icon {
+            border-color: var(--primary);
+            background: var(--primary);
+        }
+        .option-icon::after {
+            content: '';
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: white;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        .option.selected .option-icon::after {
+            opacity: 1;
+        }
+
+        .btn-main { 
+            width: 100%; 
+            padding: 16px; 
+            border-radius: 12px; 
+            border: none; 
+            font-size: 16px; 
+            font-weight: 600; 
+            background: var(--primary); 
+            color: white; 
+            cursor: pointer; 
+            margin-bottom: 12px; 
+            box-shadow: 0 4px 12px rgba(67, 103, 0, 0.2); 
+            transition: all 0.2s ease;
+        }
+        .btn-main:hover { background: var(--primary-dark); }
+        .btn-main:active { transform: scale(0.98); }
+        
+        .btn-secondary { 
+            width: 100%; 
+            padding: 16px; 
+            border-radius: 12px; 
+            border: 2px solid var(--outline-variant); 
+            font-size: 16px; 
+            font-weight: 600; 
+            color: var(--primary); 
+            background: var(--card-bg); 
+            cursor: pointer; 
+            margin-bottom: 10px; 
+            transition: all 0.2s ease;
+        }
+        .btn-secondary:hover { border-color: var(--primary); }
+        .btn-secondary:active { transform: scale(0.98); background: var(--surface-container-low); }
+
+        .action-btns { display: flex; gap: 10px; margin: 0 16px 10px; }
+        .btn-action { 
+            flex: 1; 
+            padding: 12px; 
+            border-radius: 12px; 
+            font-size: 14px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 5px; 
+            transition: all 0.2s ease;
+        }
+        .btn-save { background: var(--card-bg); color: var(--primary); border: 2px solid var(--primary); }
+        .btn-save:hover { background: var(--surface-container-low); }
+        .btn-share { background: var(--card-bg); color: var(--primary); border: 2px solid var(--primary); }
+        .btn-share:hover { background: var(--surface-container-low); }
+        
+        /* 分享卡片样式 */
+        #share-card-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        #share-card-modal.active {
+            display: flex;
+        }
+        
+        .share-card-container {
+            background: #f0f0f0;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 100%;
+            position: relative;
+        }
+        
+        .share-card {
+            background: #fdfdf3;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .share-card-header {
+            padding: 40px 32px 0;
+            text-align: center;
+        }
+        
+        .share-card-title {
+            color: #4a4a4a;
+            font-size: 14px;
+            opacity: 0.8;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+        
+        .share-card-personality {
+            color: #568203;
+            font-size: 32px;
+            font-weight: 900;
+            margin-bottom: 16px;
+            font-family: 'Noto Serif SC', serif;
+        }
+        
+        .share-card-image {
+            width: 100%;
+            max-width: 280px;
+            margin: 0 auto;
+            display: block;
+            object-fit: contain;
+        }
+        
+        .share-card-footer {
+            background: rgba(255, 255, 255, 0.5);
+            border-top: 1px solid #f0f0f0;
+            padding: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 16px;
+        }
+        
+        .share-card-logo {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .share-card-logo-top {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .share-card-logo-bar {
+            width: 8px;
+            height: 24px;
+            background: #568203;
+            border-radius: 4px;
+        }
+        
+        .share-card-logo-text {
+            font-size: 20px;
+            font-weight: 900;
+            color: #568203;
+            letter-spacing: -0.02em;
+        }
+        
+        .share-card-logo-tip {
+            color: #6b7280;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .share-card-qr-container {
+            width: 80px;
+            height: 80px;
+            background: white;
+            padding: 4px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border: 1px solid #f0f0f0;
+        }
+        
+        .share-card-qr {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .share-card-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+        
+        .share-card-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+        }
+        
+        .share-card-btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .share-card-btn-primary:hover {
+            background: var(--primary-dark);
+        }
+        
+        .share-card-btn-secondary {
+            background: var(--surface-container-low);
+            color: var(--text-main);
+            border: 2px solid var(--outline-variant);
+        }
+        
+        .share-card-btn-secondary:hover {
+            background: var(--surface-container);
+        }
+        
+        .share-card-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.1);
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-main);
+        }
+        
+        .share-card-close:hover {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        /* 顶部导航栏 */
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--outline-variant);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+        .nav-logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            font-family: 'Noto Serif SC', serif;
+            text-shadow: rgba(0, 0, 0, 0.05) 1px 1px 0px;
+        }
+        .nav-menu-btn {
+            padding: 8px;
+            color: var(--primary);
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+        .nav-menu-btn:hover {
+            opacity: 0.8;
+        }
+        .nav-menu-btn .material-icons {
+            font-size: 28px;
+        }
+
+        /* 移动端菜单 */
+        .mobile-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--surface);
+            z-index: 60;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 24px;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+        .mobile-menu.active {
+            transform: translateX(0);
+        }
+        .mobile-menu-close {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            padding: 8px;
+            color: var(--primary);
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+        .mobile-menu-close .material-icons {
+            font-size: 32px;
+        }
+        .mobile-menu-item {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--primary);
+            text-decoration: none;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .mobile-menu-item:hover {
+            opacity: 0.8;
+        }
+        .mobile-menu-item.secondary {
+            color: var(--text-sub);
+        }
+
+        /* 分享引导遮罩 */
+        #share-guide {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.75); z-index: 10000;
+            display: none; flex-direction: column; align-items: flex-end; padding: 20px;
+        }
+        .guide-arrow { width: 50px; margin-right: 20px; animation: bounce 0.8s infinite alternate; }
+        .guide-text { color: white; font-size: 18px; margin-top: 15px; margin-right: 10px; text-align: right; line-height: 1.6; }
+        @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-10px); } }
+
+        .radar-box { height: 260px; display: flex; justify-content: center; margin: 10px 0; background: var(--surface-container-low); border-radius: 12px; padding: 10px;}
+
+        .analysis-item { margin-bottom: 15px; }
+        .bar-label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; font-weight: 600; color: var(--text-main); }
+        .bar-bg { width: 100%; height: 8px; background: var(--surface-container); border-radius: 4px; overflow: hidden; }
+        .bar-fill { height: 100%; background: var(--primary); border-radius: 4px; }
+
+        .pool-title { font-size: 16px; font-weight: 700; color: var(--primary-dark); margin: 20px 0 10px 5px; display: flex; align-items: center; }
+        .pool-title::before { content: ""; width: 4px; height: 16px; background: var(--primary); margin-right: 8px; border-radius: 2px; }
+        .gallery-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .type-card { background: var(--card-bg); padding: 15px; border-radius: 12px; text-align: center; border: 1px solid var(--outline-variant); font-size: 14px; font-weight: 600; color: var(--text-main); transition: all 0.2s; }
+        .type-card:hover { border-color: var(--primary); }
+
+        .history-item { border-bottom: 1px solid var(--outline-variant); padding: 15px 0; display: flex; justify-content: space-between; align-items: center; }
+        .history-date { font-size: 12px; color: var(--text-sub); }
+        .footer-note { font-size: 10px; color: var(--text-sub); margin: 5px 16px 15px; line-height: 1.4; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* 首页特性卡片 */
+        .feature-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin: 20px 16px;
+        }
+        .feature-card {
+            background: var(--card-bg);
+            padding: 16px 12px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+        .feature-number {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--avocado);
+            margin-bottom: 4px;
+        }
+        .feature-label {
+            font-size: 12px;
+            color: var(--text-sub);
+            font-weight: 500;
+        }
+
+        /* 人格图鉴样式 */
+        .gallery-header {
+            margin-bottom: 16px;
+        }
+        .gallery-title {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 22px;
+            color: var(--primary);
+            line-height: 1.2;
+        }
+        .gallery-subtitle {
+            font-size: 12px;
+            color: var(--text-sub);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+        .personality-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            height: calc(100vh - 180px);
+            overflow-y: auto;
+        }
+        .personality-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(86, 130, 3, 0.1);
+            box-shadow: 0 10px 30px rgba(68, 105, 0, 0.05);
+            border-radius: 16px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .personality-card:active {
+            transform: scale(0.96);
+            background: rgba(255, 255, 255, 0.9);
+        }
+        .personality-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--surface-container);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+        }
+        .personality-icon .material-icons {
+            color: var(--primary);
+            font-size: 24px;
+            font-weight: 400;
+        }
+        .personality-name {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 18px;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+        .personality-tag {
+            font-size: 10px;
+            color: var(--text-sub);
+            padding: 2px 8px;
+            background: var(--surface-container);
+            border-radius: 9999px;
+            line-height: 1;
+        }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <!-- 顶部导航栏 -->
+    <div class="top-nav">
+        <div class="nav-logo">烟BTI</div>
+        <button class="nav-menu-btn" onclick="toggleMobileMenu()">
+            <span class="material-icons">menu</span>
+        </button>
+    </div>
+
+    <!-- 移动端菜单 -->
+    <div class="mobile-menu" id="mobileMenu">
+        <button class="mobile-menu-close" onclick="toggleMobileMenu()">
+            <span class="material-icons">close</span>
+        </button>
+        <div class="mobile-menu-item" onclick="toggleMobileMenu(); goHome();">首页</div>
+        <div class="mobile-menu-item secondary" onclick="toggleMobileMenu(); showGallery();">人格图鉴</div>
+        <div class="mobile-menu-item secondary" onclick="toggleMobileMenu(); showHistory();">历史记录</div>
+    </div>
+
+    <div id="screen-home" class="screen active">
+        <div class="home-hero">
+            <!-- Hero Image -->
+            <div style="width: 100%; margin-bottom: 24px;">
+                <div style="position: relative; width: 100%; aspect-ratio: 1.79; border-radius: 16px; overflow: hidden; border: 1px solid var(--outline-variant); border-opacity: 0.2; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <img alt="Smoke BTI Hero" style="width: 100%; height: 100%; object-fit: cover;" src="https://i.postimg.cc/nzGT32xp/20a0388ee3aca902e695ca83344c7d3.jpg">
+jpg">
+                </div>
+            </div>
+            
+            <div class="home-logo" style="font-family: 'Noto Serif SC', serif; text-shadow: rgba(0, 0, 0, 0.05) 1px 1px 0px; color: var(--primary);">烟BTI</div>
+            <div style="margin: 8px 0 20px; color: var(--outline); font-size: 10px; text-transform: uppercase; letter-spacing: 0.4em; font-weight: 700;">
+                SMOKE BEHAVIOR TEST
+            </div>
+            <div style="width: 64px; height: 2px; background: var(--primary); opacity: 0.2; margin: 0 auto 30px; border-radius: 9999px;"></div>
+            
+            <!-- 开始测试按钮 -->
+            <div style="padding: 0 20px; margin-bottom: 30px;">
+                <button class="btn-main" onclick="startQuiz()" style="display: flex; align-items: center; justify-content: center; gap: 8px; background: var(--primary); border-radius: 9999px; padding: 16px;">
+                    <span style="font-size: 18px; font-weight: 700;">开始测试</span>
+                    <span class="material-icons" style="font-size: 20px;">north_east</span>
+                </button>
+            </div>
+            
+            <div class="feature-cards" style="grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 20px;">
+                <div class="feature-card" style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 8px; background: var(--surface-container-low); border: 1px solid var(--outline-variant); border-opacity: 0.3; border-radius: 12px;">
+                    <span style="font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 700; line-height: 1; color: var(--primary);">8</span>
+                    <span style="font-size: 14px; font-weight: 600; color: var(--primary); text-align: center;">控烟人格</span>
+                </div>
+                <div class="feature-card" style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 8px; background: var(--surface-container-low); border: 1px solid var(--outline-variant); border-opacity: 0.3; border-radius: 12px;">
+                    <span style="font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 700; line-height: 1; color: var(--primary);">4</span>
+                    <span style="font-size: 14px; font-weight: 600; color: var(--primary); text-align: center;">维度测试</span>
+                </div>
+                <div class="feature-card" style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 8px; background: var(--surface-container-low); border: 1px solid var(--outline-variant); border-opacity: 0.3; border-radius: 12px;">
+                    <span style="font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 700; line-height: 1; color: var(--primary);">9</span>
+                    <span style="font-size: 14px; font-weight: 600; color: var(--primary); text-align: center;">题目设置</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-gallery" class="screen" style="padding: 20px;">
+        <div class="gallery-header">
+            <h1 class="gallery-title">控烟人格图鉴</h1>
+            <p class="gallery-subtitle">Smoking Personality Atlas</p>
+        </div>
+        <div class="personality-grid">
+            <div class="personality-card">
+                <div class="personality-icon">
+                    <span class="material-icons">visibility_off</span>
+                </div>
+                <h3 class="personality-name">装死者</h3>
+                <span class="personality-tag">视而不见</span>
+            </div>
+            <div class="personality-card">
+                <div class="personality-icon">
+                    <span class="material-icons">theater_comedy</span>
+                </div>
+                <h3 class="personality-name">小丑</h3>
+                <span class="personality-tag">最后一根</span>
+            </div>
+            <div class="personality-card">
+                <div class="personality-icon">
+                    <span class="material-icons">keyboard_return</span>
+                </div>
+                <h3 class="personality-name">退堂鼓手</h3>
+                <span class="personality-tag">三分钟热度</span>
+            </div>
+            <div class="personality-card">
+                <div class="personality-icon">
+                    <span class="material-icons">diamond</span>
+                </div>
+                <h3 class="personality-name">尤物</h3>
+                <span class="personality-tag">过来人</span>
+            </div>
+            <div class="personality-card">
+                <div class="personality-icon">
+                    <span class="material-icons">self_improvement</span>
+                </div>
+                <h3 class="personality-name">忍者</h3>
+                <span class="personality-tag">真不是烟灰缸</span>
+            </div>
+            <div class="personality-card">
+                <div class="personality-icon">
+                    <span class="material-icons">directions_run</span>
+                </div>
+                <h3 class="personality-name">走位大师</h3>
+                <span class="personality-tag">逃避触发点</span>
+            </div>
+            <div class="personality-card">
+                <div class="personality-icon">
+                    <span class="material-icons">my_location</span>
+                </div>
+                <h3 class="personality-name">狙击手</h3>
+                <span class="personality-tag">精准打击烟味</span>
+            </div>
+            <div class="personality-card">
+                <div class="personality-icon">
+                    <span class="material-icons">shield</span>
+                </div>
+                <h3 class="personality-name">战斗士</h3>
+                <span class="personality-tag">终极控烟者</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-history" class="screen" style="padding: 20px;">
+        <div class="glass-card" style="margin:0;">
+            <h2 style="text-align:center; margin-bottom:20px; color: var(--primary);">历史记录</h2>
+            <div id="history-list"></div>
+            <button class="btn-main" style="margin-top:20px;" onclick="goHome()">返回首页</button>
+        </div>
+    </div>
+
+    <div id="screen-quiz" class="screen">
+        <div class="progress-container"><div id="progress-inner" class="progress-inner"></div></div>
+        <p id="progress-text" style="text-align:center; font-size:12px; color:var(--text-sub); margin-bottom:10px;"></p>
+        <div class="glass-card">
+            <div id="q-text" class="q-text"></div>
+            <div id="options-container"></div>
+        </div>
+        <div id="footer-note-area"></div>
+    </div>
+
+    <div id="screen-result" class="screen">
+        <div id="poster-area">
+            <div class="glass-card" style="text-align: center;">
+                <p style="color: var(--text-sub); font-size: 18px; font-weight: 600; margin-bottom: 12px;">你的烟BTI是</p>
+                <img id="res-img" src="" style="width: 100%; border-radius: 12px; margin: 12px 0; box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+            </div>
+
+            <div class="action-btns">
+                <button class="btn-action btn-share" onclick="showShareGuide()">分享链接给好友</button>
+                <button class="btn-action btn-save" onclick="generatePoster()">保存海报</button>
+            </div>
+            
+            <div id="debug-info" style="display: none; background: #fff3cd; padding: 10px; margin: 10px 0; border-radius: 8px; font-size: 12px;">
+                <strong>调试信息：</strong><br>
+                <span id="debug-personality">人格：未设置</span><br>
+                <span id="debug-qr">QRCode库：<span id="debug-qr-status">检查中...</span></span><br>
+                <span id="debug-html2canvas">html2canvas库：<span id="debug-html2canvas-status">检查中...</span></span>
+            </div>
+            
+            <div id="debug-info" style="display: none; background: #fff3cd; padding: 10px; margin: 10px 0; border-radius: 8px; font-size: 12px;">
+                <strong>调试信息：</strong><br>
+                <span id="debug-personality">人格：未设置</span><br>
+                <span id="debug-qr">QRCode库：<span id="debug-qr-status">检查中...</span></span><br>
+                <span id="debug-html2canvas">html2canvas库：<span id="debug-html2canvas-status">检查中...</span></span>
+            </div>
+            
+            <div id="debug-info" style="display: none; background: #fff3cd; padding: 10px; margin: 10px 0; border-radius: 8px; font-size: 12px;">
+                <strong>调试信息：</strong><br>
+                <span id="debug-personality">人格：未设置</span><br>
+                <span id="debug-qr">QRCode库：<span id="debug-qr-status">检查中...</span></span><br>
+                <span id="debug-html2canvas">html2canvas库：<span id="debug-html2canvas-status">检查中...</span></span>
+            </div>
+
+            <div class="glass-card">
+                <h3 style="font-size: 17px; margin-bottom: 20px; border-left: 4px solid var(--primary); padding-left: 12px; font-weight: 700;">人格深度解析</h3>
+                <p id="res-desc" style="font-size: 14px; line-height: 1.8; color: var(--text-main);"></p>
+            </div>
+
+            <div class="glass-card">
+                <h3 style="font-size: 17px; margin-bottom: 20px; border-left: 4px solid var(--primary); padding-left: 12px; font-weight: 700;">维度数据画像</h3>
+                <div class="radar-box"><canvas id="radarChart"></canvas></div>
+                <div id="bar-chart-area"></div>
+            </div>
+
+            <div class="glass-card">
+                <h3 style="font-size: 17px; margin-bottom: 15px; border-left: 4px solid var(--primary); padding-left: 12px; font-weight: 700;">医学建议与行动</h3>
+                <ul id="res-advice" style="padding-left: 18px; font-size: 14px; color: var(--text-main); line-height: 1.8;"></ul>
+                <div id="res-quote" style="margin-top: 15px; padding: 12px; background: var(--surface-container-low); border-radius: 8px; font-size: 13px; color: var(--primary-dark); border: 1px solid var(--outline-variant);"></div>
+            </div>
+        </div>
+
+        <div style="padding: 0 16px 20px;">
+            <button class="btn-main" onclick="location.reload()">重新测试</button>
+            <button class="btn-secondary" onclick="showHistory()">历史记录</button>
+        </div>
+    </div>
+</div>
+
+<div id="share-guide" onclick="this.style.display='none'">
+            <svg class="guide-arrow" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M80 20L50 50M80 20L50 10M80 20V50" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div class="guide-text">
+                点击右上角菜单<br>
+                选择<b>【发送给朋友】</b><br>
+                或<b>【分享到朋友圈】</b>
+            </div>
+        </div>
+
+        <div id="share-card-modal">
+            <div class="share-card-container">
+                <button class="share-card-close" onclick="closeShareCard()">×</button>
+                <div id="share-card" class="share-card">
+                    <div style="padding: 24px;">
+                        <img id="share-personality-image" class="share-card-image" src="" alt="人格图片">
+                    </div>
+                    <div class="share-card-footer">
+                        <div class="share-card-logo">
+                            <div class="share-card-logo-top">
+                                <div class="share-card-logo-bar"></div>
+                                <span class="share-card-logo-text">烟 BTI</span>
+                            </div>
+                            <div class="share-card-logo-tip">扫码开启你的控烟人格测试</div>
+                        </div>
+                        <div class="share-card-qr-container">
+                            <canvas id="share-qr-code" class="share-card-qr"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="share-card-actions">
+                    <button class="share-card-btn share-card-btn-secondary" onclick="closeShareCard()">关闭</button>
+                    <button class="share-card-btn share-card-btn-primary" onclick="shareToWeChat()">分享给好友</button>
+                </div>
+            </div>
+        </div>
+
+<script>
+    const questions = [
+        { id: 1, text: "1. 你和烟的关系是？", options: [
+            { text: "这辈子从没主动碰过烟，唯一和烟的交集就是被迫吸二手烟", pool: "受害者" },
+            { text: "以前有抽烟的习惯，现在已经戒烟 / 正在咬牙戒断中", pool: "戒烟者" },
+            { text: "日常会吸烟，目前还没打算和烟说拜拜", pool: "吸烟者" },
+            { text: "自身不吸烟，还会主动维护无烟环境，遇到二手烟会礼貌上前劝阻", pool: "控烟者" }
+        ]},
+        { id: 2, text: "2. 刷到吸烟危害的科普内容时，你的第一反应 be like：", options: [
+            { text: "又在吓唬人！我肺这么好，这点伤害完全不care", p: 1 },
+            { text: "知道抽烟伤肺、显老、二手烟对别人不好，深层危害没咋深究过", p: 2 },
+            { text: "我知道！烟草含7000多种有害物质，至少70种可致癌，长期吸烟平均折寿10年！", p: 3 }
+        ]},
+        { id: 3, text: "3. 说到戒烟的好处，你内心真实 OS 是？", options: [
+            { text: "都抽了这么久了，现在戒也晚了，没必要折腾自己", p: 1 },
+            { text: "知道戒了肯定有好处，但具体多久见效、能改善啥完全没底", p: 2 },
+            { text: "我记得戒烟20 分钟心率下降，1 年冠心病风险直接减半！", p: 3 }
+        ]},
+        { id: 4, text: "4. 二手烟飘过来时，你的第一反应是？", options: [
+            { text: "别人抽我就闻，这点烟味，习惯就好", p: 1 },
+            { text: "心里膈应，但懒得说，开窗通风安慰自己", p: 2 },
+            { text: "秒撤！二手烟根本没有安全剂量，闻着都觉得亏", p: 3 }
+        ]},
+        { id: 5, text: "5. 关于你与烟的日常，哪句话最像你本人？", options: [
+            { text: "知道吸烟不好 ，但是不想戒烟", p: 1 },
+            { text: "正在努力戒烟中，但有时烟瘾犯了还是想来一根", p: 2 },
+            { text: "坚守绝不碰烟的底线，我还想活久一点", p: 3 }
+        ]},
+        { id: 6, text: "6. 撞见有人在孕妇、小朋友旁吞云吐雾，你怎么想？", options: [
+            { text: "别人有抽烟自由，多一事不如少一事，不想介入", p: 1 },
+            { text: "心里疯狂吐槽，但怕起冲突，只敢在心里默默翻白眼", p: 2 },
+            { text: "血压飙升，上前阻止！二手烟对胎儿发育有致命影响", p: 3 }
+        ]},
+        { id: 7, text: "7. 各地推行公共场所全面控烟，你怎么看？", options: [
+            { text: "觉得控烟有点小题大做，管得太严，抽个烟都束手束脚的", p: 1 },
+            { text: "无烟环境确实舒服，但也能包容别人在角落里偷偷抽两口", p: 2 },
+            { text: "举双手赞成！零个人想关心烟民的身体健康，我只是不想吸二手烟", p: 3 }
+        ]},
+        { id: 8, text: "8. 餐厅电梯这类禁烟场所，遇上有人违规抽烟你会怎么做？", options: [
+            { text: "赶紧戴好口罩或者直接溜走，不想招惹麻烦", p: 1 },
+            { text: "疯狂用眼神示意，配合假咳两声，靠小动作暗示对方自觉掐烟", p: 2 },
+            { text: "主动上前礼貌提醒，明确告知这里是禁烟区，不能抽烟！", p: 3 }
+        ]},
+        { id: 9, text: "9. 如果上一题你好心提醒了，但对方装聋作哑继续抽，你的下一步动作是？", options: [
+            { text: "算了算了，不想纠缠，直接转身走人", p: 1 },
+            { text: "立刻喊场所的工作人员过来，不要硬刚", p: 2 },
+            { text: "拍照留好证据，直接走官方渠道举报，用规则约束违规行为", p: 3 }
+        ], note: "深圳可通过「别抽啦」小程序一键举报，香港可拨打控烟热线2961 8823举报"}
+    ];
+
+    const personalities = [
+        { name: "装死者", pool: "吸烟者", code: [0,0,0,0], img: "https://i.postimg.cc/mD7LBKZZ/zhuang-si-zhe.png", desc: "主打及时行乐。虽然你也知道烟草烟雾里有7000多种化学物质在开狂欢派对，但当下的快感还是让你选择了暂时闭麦。你的健康防御系统正在超负荷运转，是时候给它放个假，听听身体的求救声了。", advice: ["每天尝试少抽一支烟开始","了解专业戒烟门诊指导","不在封闭空间吸烟是底线"], quote: "吸烟的人比不吸烟的人平均寿命减少10年。——中国疾控中心" },
+        { name: "小丑", pool: "吸烟者", code: [1,0,0,0], img: "https://i.postimg.cc/Gp58401r/xiao-chou.png", desc: "戒烟口号喊得最响，Flag立得最勤。你知道抽烟伤肺，但总觉得「下一根」才是最后一根。你的健康意识已觉醒，只是差了一点彻底告别的勇气。打破循环，就从扔掉打火机开始吧！", advice: ["扔掉所有烟具减少诱惑","使用尼古丁替代疗法辅助","设定一个具体的戒烟起始日"], quote: "戒断12小时后，血液中的一氧化碳浓度就会降至正常值。——中国疾控中心" },
+        { name: "退堂鼓手", pool: "戒烟者", code: [1,1,1,0], img: "https://i.postimg.cc/V6vvwKrm/tui-tang-gu-shou.png", desc: "你正在经历一场伟大的「内部战争」！意志力正在与尼古丁瘾正面硬刚。虽然过程有点难受，但每坚持一小时，你体内的一氧化碳浓度就在下降。加油，你离彻底「上岸」只差一个坚持！", advice: ["烟瘾来袭时尝试深呼吸或喝水","远离经常一起抽烟的圈子","记录戒烟省下的钱奖励自己"], quote: "戒烟1年后，冠心病风险比吸烟者降低一半。——中国疾控中心" },
+        { name: "尤物", pool: "戒烟者", code: [2,2,1,0], img: "https://i.postimg.cc/65t356Gb/you-wu.png", desc: "恭喜！你已经是自由的呼吸者了。摆脱了尼古丁的束缚，你的血液循环、肺功能都在稳步回升。你不仅赢回了健康，更赢回了对生活的掌控权。你是真正的自律大神！", advice: ["坚决拒绝「只抽一口」的试探","向仍在吸烟的朋友分享经验","坚持有氧运动提升心肺活性"], quote: "停止吸烟20分钟内，心率就会下降。——中国疾控中心" },
+        { name: "忍者", pool: "受害者", code: [1,1,2,0], img: "https://i.postimg.cc/1Xg8Gvsr/ren-zhe.png", desc: "虽然你不点火，但你的肺却在被迫营业。你是个温柔的和平主义者，习惯用避让换取和谐。但你要明白，二手烟没有安全剂量，守护健康需要更坚定的立场。学会优雅地拒绝，是为了更好地爱自己。", advice: ["了解「三手烟」对家人的潜伏危害","学习礼貌拒绝他人吸烟的技巧","在禁烟区尝试用眼神明确表达不适"], quote: "全世界前8位死因中，有6种与吸烟有关。——中国疾控中心" },
+        { name: "走位大师", pool: "受害者", code: [1,2,2,0], img: "https://i.postimg.cc/9FLWmd2H/zou-wei-da-shi.png", desc: "你拥有全场最灵敏的烟味探测雷达！哪里有烟，哪里就有你迅速撤离的残影。这种「走位」虽然躲过了即时伤害，但也说明你正身处烟草包围圈。主动呼吁无烟环境，才能让你彻底「位移」到安全地带。", advice: ["不仅要躲开烟，更要维护无烟权","建议同住人彻底在室外吸烟","了解《控烟条例》用法律保护自己"], quote: "二手烟中至少含70种致癌物，暴露没有安全水平。——中国疾控中心" },
+        { name: "狙击手", pool: "控烟者", code: [1,2,2,1], img: "https://i.postimg.cc/DyJGLwwD/ju-ji-shou.png", desc: "你是规则的维护者，更是健康的狙击手！面对违规抽烟，你不再沉默，而是选择用规则和礼貌作为武器。社会控烟氛围的提升，正需要你这样勇敢发声的小伙伴！", advice: ["熟练使用「别抽啦」小程序举报","科普二手烟对儿童发育的影响","带动同事共同打造无烟办公室"], quote: "无烟环境可以完全保护非吸烟者免受二手烟危害。——中国疾控中心" },
+        { name: "战斗士", pool: "控烟者", code: [2,2,2,2], img: "https://i.postimg.cc/2SW4RSpX/killer.png", desc: "你是控烟界的「正义化身」！知识过硬、立场坚定、行动力爆表。你对烟草危害的认知深度足以去写科普专栏了。有你在的地方，烟雾都要绕着走。请继续发光发热，守护这一方净土！", advice: ["继续作为无烟环境的坚定守护者","向更多人推广控烟法律法规","配合社区开展控烟科普宣传"], quote: "每一个劝阻动作，都可能在挽救生命。——中国疾控中心" }
+    ];
+
+    let currentIdx = 0, selectedPool = "", userDimPoints = [0,0,0,0], chartInstance = null, testStartTime = null;
+    
+    window.addEventListener('load', function() {
+        recordPageView();
+        
+        // 检查库加载状态
+        setTimeout(function() {
+            console.log('=== 库加载状态检查 ===');
+            console.log('Chart.js:', typeof Chart !== 'undefined' ? '✓ 已加载' : '✗ 未加载');
+            console.log('QRCode:', typeof QRCode !== 'undefined' ? '✓ 已加载' : '✗ 未加载');
+            console.log('html2canvas:', typeof html2canvas !== 'undefined' ? '✓ 已加载' : '✗ 未加载');
+            console.log('===================');
+        }, 1000);
+    });
+    
+    function recordPageView() {
+        try {
+            fetch('http://localhost:3000/api/page-view', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    timestamp: new Date().toISOString(),
+                    date: new Date().toLocaleDateString('zh-CN'),
+                    time: new Date().toLocaleTimeString('zh-CN')
+                })
+            }).catch(error => console.error('记录浏览量失败:', error));
+        } catch (error) {
+            console.error('记录浏览量失败:', error);
+        }
+    }
+
+    function toggleMobileMenu() {
+        const menu = document.getElementById('mobileMenu');
+        menu.classList.toggle('active');
+    }
+
+    function goHome() { location.reload(); }
+    function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); window.scrollTo(0,0); }
+    function startQuiz() { currentIdx = 0; userDimPoints = [0,0,0,0]; testStartTime = new Date(); showScreen('screen-quiz'); renderQuestion(); }
+
+    function showGallery() {
+        showScreen('screen-gallery');
+    }
+
+    function showHistory() {
+        const history = JSON.parse(localStorage.getItem('yan_bti_history') || '[]');
+        const list = document.getElementById('history-list');
+        if(history.length === 0) {
+            list.innerHTML = '<p style="text-align:center; padding:20px; color:#999;">暂无记录</p>';
+        } else {
+            list.innerHTML = history.slice().reverse().map(h => `
+                <div class="history-item">
+                    <div class="history-info">
+                        <strong>${h.name}</strong>
+                        <div class="history-date">${h.date}</div>
+                    </div>
+                    <div style="color:var(--primary); font-weight:bold;">${h.match}% 匹配</div>
+                </div>
+            `).join('');
+        }
+        showScreen('screen-history');
+    }
+
+    let currentPersonality = null;
+    
+    function showShareGuide() {
+        console.log('showShareGuide 被调用');
+        
+        if (!currentPersonality) {
+            console.error('currentPersonality 为空');
+            alert('请先完成测试');
+            return;
+        }
+        
+        // 显示黑色遮罩提示
+        const shareGuide = document.getElementById('share-guide');
+        if (shareGuide) {
+            shareGuide.style.display = 'flex';
+        }
+    }
+    
+    function showShareCard() {
+        console.log('showShareCard 被调用');
+        
+        if (!currentPersonality) {
+            console.error('currentPersonality 为空');
+            alert('请先完成测试');
+            return;
+        }
+        
+        console.log('设置人格名称:', currentPersonality.name);
+        console.log('设置人格图片:', currentPersonality.img);
+        
+        document.getElementById('share-personality-name').textContent = currentPersonality.name;
+        document.getElementById('share-personality-image').src = currentPersonality.img;
+        
+        console.log('显示分享卡片弹窗');
+        document.getElementById('share-card-modal').classList.add('active');
+        
+        console.log('分享卡片显示完成');
+    }
+    
+    function closeShareCard() {
+        document.getElementById('share-card-modal').classList.remove('active');
+    }
+    
+    function shareToWeChat() {
+        console.log('shareToWeChat 被调用');
+        
+        if (!currentPersonality) {
+            console.error('currentPersonality 为空');
+            alert('请先完成测试');
+            return;
+        }
+        
+        // 显示黑色遮罩提示
+        const shareGuide = document.getElementById('share-guide');
+        if (shareGuide) {
+            shareGuide.style.display = 'flex';
+        }
+        
+        // 关闭分享卡片
+        closeShareCard();
+    }
+    
+    function renderQuestion() {
+        const q = questions[currentIdx];
+        const progress = ((currentIdx + 1) / 9) * 100;
+        document.getElementById('progress-inner').style.width = progress + '%';
+        document.getElementById('progress-text').innerText = `第 ${currentIdx + 1} / 9 题`;
+        
+        document.getElementById('q-text').innerText = q.text;
+        const container = document.getElementById('options-container'); 
+        const noteArea = document.getElementById('footer-note-area');
+        container.innerHTML = '';
+        noteArea.innerHTML = '';
+
+        q.options.forEach((opt, idx) => {
+            const b = document.createElement('div'); 
+            b.className = 'option'; 
+            b.innerHTML = `<div class="option-icon"></div><span>${opt.text}</span>`;
+            b.onclick = () => {
+                if(currentIdx === 0) selectedPool = opt.pool;
+                else userDimPoints[Math.floor((currentIdx - 1) / 2)] += opt.p;
+                currentIdx++;
+                currentIdx < 9 ? renderQuestion() : calcResult();
+            };
+            container.appendChild(b);
+        });
+
+        if(q.note) {
+            noteArea.innerHTML = `<span class="footer-note">${q.note}</span>`;
+        }
+    }
+
+    function calcResult() {
+        const userCode = userDimPoints.map(p => p <= 3 ? 0 : (p === 4 ? 1 : 2));
+        const poolList = personalities.filter(p => p.pool === selectedPool) || personalities;
+        let bestMatch = poolList[0], minDist = Infinity;
+        poolList.forEach(p => {
+            let dist = 0; for(let i=0; i<4; i++) dist += Math.abs(userCode[i] - p.code[i]);
+            if(dist < minDist) { minDist = dist; bestMatch = p; }
+        });
+
+        const history = JSON.parse(localStorage.getItem('yan_bti_history') || '[]');
+        history.push({
+            name: bestMatch.name,
+            match: Math.round((1 - minDist/8) * 100),
+            date: new Date().toLocaleString()
+        });
+        localStorage.setItem('yan_bti_history', JSON.stringify(history.slice(-10)));
+
+        renderResult(bestMatch, userDimPoints);
+    }
+
+    function renderResult(p, points) {
+        currentPersonality = p;
+        
+        const imgElement = document.getElementById('res-img');
+        imgElement.src = p.img;
+        imgElement.onerror = function() {
+            console.error('图片加载失败:', p.img);
+            this.style.display = 'none';
+        };
+        imgElement.onload = function() {
+            console.log('图片加载成功:', p.img);
+        };
+        document.getElementById('res-desc').innerText = p.desc;
+        document.getElementById('res-quote').innerText = p.quote;
+        const adv = document.getElementById('res-advice'); adv.innerHTML = p.advice.map(a => `<li>${a}</li>`).join('');
+        
+        // 上传数据到后端
+        const testDuration = testStartTime ? Math.round((new Date() - testStartTime) / 1000) : 0;
+        uploadTestDataToLocalStorage(selectedPool, p.name, points, userDimPoints, testDuration);
+        
+        const dims = ["健康认知", "自我管控", "公共责任", "主动干预"];
+        document.getElementById('bar-chart-area').innerHTML = points.map((val, i) => `
+            <div class="analysis-item">
+                <div class="bar-label"><span>${dims[i]}</span><span>${val}/6</span></div>
+                <div class="bar-bg"><div class="bar-fill" style="width: ${(val/6)*100}%"></div></div>
+            </div>`).join('');
+
+        showScreen('screen-result');
+        initChart(points);
+    }
+
+    function initChart(data) {
+        if(chartInstance) chartInstance.destroy();
+        const ctx = document.getElementById('radarChart').getContext('2d');
+        chartInstance = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: ['健康认知', '自我管控', '公共责任', '主动干预'],
+                datasets: [{
+                    data: data,
+                    backgroundColor: 'rgba(67, 103, 0, 0.15)',
+                    borderColor: '#436700',
+                    pointBackgroundColor: '#436700',
+                    borderWidth: 2
+                }]
+            },
+            options: { 
+                scales: { r: { min: 0, max: 6, ticks: { display: false }, grid: { color: 'rgba(0,0,0,0.05)' } } }, 
+                plugins: { legend: { display: false } } 
+            }
+        });
+    }
+
+    function generatePoster() {
+        const target = document.getElementById('poster-area');
+        const tip = document.createElement('div');
+        tip.style = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.8);color:#fff;padding:15px 25px;border-radius:10px;z-index:9999;";
+        tip.innerText = "海报生成中...";
+        document.body.appendChild(tip);
+
+        html2canvas(target, { scale: 2, useCORS: true, backgroundColor: "#f9f9f9" }).then(canvas => {
+            const imgData = canvas.toDataURL("image/png");
+            document.body.removeChild(tip);
+            
+            const preview = document.createElement('div');
+            preview.style = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;";
+            preview.innerHTML = `
+                <p style="color:#FFF; margin-bottom:10px;">长按下方图片保存至相册</p>
+                <img src="${imgData}" style="max-width:100%;max-height:75%;border-radius:10px;">
+                <button class="btn-main" style="margin-top:20px;width:120px;" onclick="this.parentElement.remove()">返回</button>
+            `;
+            document.body.appendChild(preview);
+        });
+    }
+
+    async function uploadTestDataToLocalStorage(pool, personalityName, dimensions, userDimPoints, duration) {
+        try {
+            console.log("正在尝试发送数据到本地后端...");
+            console.log("上传数据:", { pool, personalityName, dimensions, userDimPoints, duration });
+            const response = await fetch('http://localhost:3000/api/save-result', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    answers: pool,
+                    personality: personalityName,
+                    scores: userDimPoints,
+                    duration: duration
+                })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                console.log("🎉 后端反馈: " + data.message);
+            } else {
+                console.log("❌ 后端返回失败:", data.message);
+            }
+        } catch (error) {
+            console.error("❌ 无法连接到本地后端服务器，请确认终端里的 node server.js 还在跑！:", error);
+        }
+    }
+</script>
+</body>
+</html>
